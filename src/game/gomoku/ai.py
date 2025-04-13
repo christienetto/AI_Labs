@@ -64,7 +64,7 @@ def update_candidate_moves(candidate_moves: Set[Tuple[int, int]], move: Tuple[in
 def distance_to(origin: Tuple[int, int], target: Tuple[int, int]) -> int:
     return abs(origin[0] - target[0]) + abs(origin[1] - target[1])
 
-def check_winner_last_move(board: List[List[str]], last_move: Tuple[int, int]) -> bool:
+def check_winner_last_move(board, last_move):
     if last_move == (-1, -1):
         return False
     row, col = last_move
@@ -73,19 +73,49 @@ def check_winner_last_move(board: List[List[str]], last_move: Tuple[int, int]) -
         return False
 
     directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-
     for dr, dc in directions:
         count = 1
         for d in [-1, 1]:
             r, c = row + dr * d, col + dc * d
-            while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE and board[r][c] == player:
+            while (0 <= r < BOARD_SIZE and 
+                   0 <= c < BOARD_SIZE and 
+                   board[r][c] == player):
                 count += 1
                 r += dr * d
                 c += dc * d
-        if count >= 5:
-            return True
+                if count >= 5:
+                    return True
     return False
+def evaluate(board):
+    score = 0
+    for i in range(BOARD_SIZE):
+        for j in range(BOARD_SIZE):
+            if board[i][j] == PLAYER_O:
+                score += evaluate_position(board, i, j, PLAYER_O)
+            elif board[i][j] == PLAYER_X:
+                score -= evaluate_position(board, i, j, PLAYER_X)
+    return score
 
-def evaluate(board: List[List[str]]) -> int:
-    return 0
-
+def evaluate_position(board, row, col, player):
+    directions = [(0,1),(1,0),(1,1),(1,-1)]
+    position_score = 0
+    for dr, dc in directions:
+        line = 1
+        # Check both directions
+        for d in [-1, 1]:
+            r, c = row + dr*d, col + dc*d
+            while 0 <= r < BOARD_SIZE and 0 <= c < BOARD_SIZE:
+                if board[r][c] == player:
+                    line += 1
+                elif board[r][c] != EMPTY:
+                    break  # Opponent's piece blocks
+                else:
+                    # Empty space - check if it can form a line
+                    if line + 1 >= 5: position_score += 10
+                    break
+                r += dr*d
+                c += dc*d
+        if line >= 5: position_score += 1000  # Winning move
+        elif line == 4: position_score += 100
+        elif line == 3: position_score += 10
+    return position_score
