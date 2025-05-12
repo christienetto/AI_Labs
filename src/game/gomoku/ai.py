@@ -86,6 +86,7 @@ def check_winner_last_move(board, last_move):
                 if count >= 5:
                     return True
     return False
+
 def evaluate(board):
     score = 0
     for i in range(BOARD_SIZE):
